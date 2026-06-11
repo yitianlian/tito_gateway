@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 
 from tito_gateway.config import TITOGatewayConfig
@@ -59,8 +60,24 @@ def _add_serve_arguments(parser: argparse.ArgumentParser) -> None:
 def _add_verify_chat_template_parser(subparsers: argparse._SubParsersAction) -> None:
     parser = subparsers.add_parser(
         "verify-chat-template",
-        help="Placeholder for Miles verify_chat_template delegation.",
+        help="Verify that a chat template is append-only after last user message.",
     )
+    parser.add_argument("--template", metavar="PATH")
+    parser.add_argument("--model", metavar="MODEL_ID")
+    parser.add_argument(
+        "--tito-model",
+        choices=[item.value for item in TITOTokenizerType],
+        default=None,
+    )
+    parser.add_argument(
+        "--tito-allowed-append-roles",
+        nargs="+",
+        default=["tool"],
+        choices=["tool", "user", "system"],
+        metavar="ROLE",
+    )
+    parser.add_argument("--thinking", choices=["off", "on", "both"], default="on")
+    parser.add_argument("--chat-template-kwargs", type=json.loads, default=None, metavar="JSON")
     parser.set_defaults(verify_command="chat-template")
 
 
@@ -97,8 +114,16 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(raw_args)
 
     if getattr(args, "verify_command", None):
+        if args.verify_command == "chat-template":
+            from tito_gateway.verify_chat_template import run_from_args
+
+            try:
+                return run_from_args(args)
+            except Exception as exc:
+                print(f"tito-gateway verify-chat-template: error: {exc}", file=sys.stderr)
+                return 1
         print(
-            f"{args.verify_command} verifier will be enabled when Miles verifier code is vendored.",
+            f"{args.verify_command} verifier will be enabled when Miles session e2e code is vendored.",
             file=sys.stderr,
         )
         return 2
