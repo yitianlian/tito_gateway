@@ -16,6 +16,7 @@
 
 - `README.md`
 - `pyproject.toml`
+- `.gitignore`
 - `tito_gateway/__init__.py`
 - `tito_gateway/cli.py`
 - `tito_gateway/config.py`
