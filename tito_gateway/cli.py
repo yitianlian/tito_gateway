@@ -84,8 +84,33 @@ def _add_verify_chat_template_parser(subparsers: argparse._SubParsersAction) -> 
 def _add_verify_session_parser(subparsers: argparse._SubParsersAction) -> None:
     parser = subparsers.add_parser(
         "verify-session-tito-tokenizer",
-        help="Placeholder for optional Miles/SGLang e2e verifier.",
+        help="Run the optional Miles/SGLang session-server TITO verifier.",
     )
+    parser.add_argument("--hf-checkpoint", required=True, help="HuggingFace model ID or local checkpoint path.")
+    parser.add_argument(
+        "--tito-model",
+        choices=[item.value for item in TITOTokenizerType],
+        required=True,
+        help="Miles TITO tokenizer family.",
+    )
+    parser.add_argument(
+        "--tito-allowed-append-roles",
+        nargs="+",
+        default=["tool"],
+        choices=["tool", "user", "system"],
+        metavar="ROLE",
+    )
+    parser.add_argument("--sglang-reasoning-parser", default=None)
+    parser.add_argument("--sglang-tool-call-parser", default=None)
+    parser.add_argument("--rollout-num-gpus-per-engine", type=int, default=1)
+    parser.add_argument("--sglang-expert-parallel-size", type=int, default=1)
+    parser.add_argument("--actor-num-nodes", type=int, default=1)
+    parser.add_argument("--actor-num-gpus-per-node", type=int, default=1)
+    parser.add_argument("--n-samples-per-prompt", type=int, default=4)
+    parser.add_argument("--session-verify-cycles", type=int, default=3)
+    parser.add_argument("--tool-call-failure-mode", default="rollback")
+    parser.add_argument("--assistant-text-threshold", type=float, default=0.1)
+    parser.add_argument("--rollout-max-response-len", type=int, default=8192)
     parser.set_defaults(verify_command="session-tito-tokenizer")
 
 
@@ -122,11 +147,9 @@ def main(argv: list[str] | None = None) -> int:
             except Exception as exc:
                 print(f"tito-gateway verify-chat-template: error: {exc}", file=sys.stderr)
                 return 1
-        print(
-            f"{args.verify_command} verifier will be enabled when Miles session e2e code is vendored.",
-            file=sys.stderr,
-        )
-        return 2
+        from tito_gateway.verify_session_tito_tokenizer import run_from_args
+
+        return run_from_args(args)
 
     try:
         return _serve(args)
