@@ -8,15 +8,9 @@ import sys
 from pathlib import Path
 from types import ModuleType
 
-_REPO_ROOT = Path(__file__).resolve().parents[1]
 
-
-def _is_relative_to(path: Path, root: Path) -> bool:
-    try:
-        path.relative_to(root)
-    except ValueError:
-        return False
-    return True
+class UpstreamModuleLoadError(ImportError):
+    """Raised when a present upstream module cannot be imported."""
 
 
 def _candidate_files(module_name: str, search_root: Path) -> tuple[Path, Path]:
@@ -40,7 +34,7 @@ def load_upstream_module(module_name: str, local_file: str) -> ModuleType | None
                 candidate = candidate.resolve()
             except OSError:
                 continue
-            if not candidate.exists() or candidate == local_path or _is_relative_to(candidate, _REPO_ROOT):
+            if not candidate.exists() or candidate == local_path:
                 continue
 
             digest = hashlib.sha1(str(candidate).encode("utf-8")).hexdigest()[:12]
@@ -60,9 +54,13 @@ def load_upstream_module(module_name: str, local_file: str) -> ModuleType | None
             sys.modules[alias] = module
             try:
                 spec.loader.exec_module(module)
-            except Exception:
+            except Exception as exc:
                 sys.modules.pop(alias, None)
-                continue
+                raise UpstreamModuleLoadError(
+                    f"Found upstream candidate for {module_name} at {candidate}, "
+                    "but importing it failed. Fix the upstream Miles installation "
+                    "or remove it from sys.path."
+                ) from exc
             return module
     return None
 

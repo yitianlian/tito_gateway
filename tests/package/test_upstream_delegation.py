@@ -3,6 +3,8 @@ import sys
 
 import pytest
 
+from miles._upstream_loader import UpstreamModuleLoadError, load_upstream_module
+
 
 TARGET_MODULES = {
     "miles.utils.external_utils.command_utils",
@@ -77,6 +79,39 @@ def test_exact_name_wrappers_delegate_to_later_upstream_sys_path(tmp_path, monke
     assert base_types.SOURCE == "fake-upstream-base-types"
     assert base_types.GenerateFnInput.ORIGIN == "upstream"
     assert base_types.GenerateFnOutput.ORIGIN == "upstream"
+
+
+def test_loader_considers_upstream_candidate_under_shared_install_root(tmp_path, monkeypatch):
+    shared_root = tmp_path / "site-packages"
+    upstream = shared_root / "miles" / "utils" / "external_utils"
+    upstream.mkdir(parents=True)
+    (upstream / "command_utils.py").write_text("SOURCE = 'shared-root-upstream'\n")
+
+    local_file = shared_root / "tito_gateway_wrapper" / "miles" / "utils" / "external_utils" / "command_utils.py"
+    local_file.parent.mkdir(parents=True)
+    local_file.write_text("SOURCE = 'local-wrapper'\n")
+
+    monkeypatch.setattr(sys, "path", [str(shared_root)])
+
+    module = load_upstream_module("miles.utils.external_utils.command_utils", str(local_file))
+
+    assert module is not None
+    assert module.SOURCE == "shared-root-upstream"
+
+
+def test_present_upstream_import_failure_is_not_masked(tmp_path, monkeypatch):
+    fake_root = tmp_path / "broken_upstream"
+    command_utils = fake_root / "miles" / "utils" / "external_utils"
+    command_utils.mkdir(parents=True)
+    (command_utils / "command_utils.py").write_text("raise RuntimeError('upstream exploded')\n")
+    monkeypatch.setattr(sys, "path", [*sys.path, str(fake_root)])
+    importlib.invalidate_caches()
+
+    with pytest.raises(UpstreamModuleLoadError, match="Found upstream candidate") as exc_info:
+        importlib.import_module("miles.utils.external_utils.command_utils")
+
+    assert isinstance(exc_info.value.__cause__, RuntimeError)
+    assert "upstream exploded" in str(exc_info.value.__cause__)
 
 
 def test_command_utils_fallback_remains_clear_without_upstream():
