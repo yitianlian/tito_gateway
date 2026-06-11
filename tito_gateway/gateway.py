@@ -13,7 +13,11 @@ class TITOGateway:
     """Small wrapper that resolves a backend and owns a session server app."""
 
     def __init__(self, config: TITOGatewayConfig):
-        backend_url = discover_backend_url(config.backend_url)
+        backend_url = discover_backend_url(
+            config.backend_url,
+            probe_candidates=config.backend_probe_candidates,
+            probe_timeout=config.backend_probe_timeout,
+        )
         self.config = replace(config, backend_url=backend_url)
         self.server = SessionServer(self.config.as_miles_namespace(), backend_url)
 

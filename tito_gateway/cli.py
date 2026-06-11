@@ -55,6 +55,19 @@ def _add_serve_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--session-server-ip", default="127.0.0.1", help="Gateway bind host.")
     parser.add_argument("--session-server-port", type=int, default=30000, help="Gateway bind port.")
     parser.add_argument("--miles-router-timeout", type=float, default=600.0, help="Proxy timeout in seconds.")
+    parser.add_argument(
+        "--backend-probe-candidate",
+        action="append",
+        default=None,
+        metavar="URL",
+        help="Local backend URL candidate to probe after explicit and environment URLs; repeatable.",
+    )
+    parser.add_argument(
+        "--backend-probe-timeout",
+        type=float,
+        default=0.25,
+        help="Per-endpoint backend probe timeout in seconds.",
+    )
 
 
 def _add_verify_chat_template_parser(subparsers: argparse._SubParsersAction) -> None:
@@ -128,6 +141,8 @@ def _serve(args: argparse.Namespace) -> int:
         session_server_ip=args.session_server_ip,
         session_server_port=args.session_server_port,
         miles_router_timeout=args.miles_router_timeout,
+        backend_probe_candidates=args.backend_probe_candidate,
+        backend_probe_timeout=args.backend_probe_timeout,
     )
     TITOGateway(config).run()
     return 0

@@ -1,3 +1,5 @@
+import os
+
 from tito_gateway.cli import main
 
 
@@ -19,7 +21,10 @@ def test_cli_serve_help(capsys):
     assert "--hf-checkpoint" in capsys.readouterr().out
 
 
-def test_cli_verify_session_returns_clear_dependency_error(capsys):
+def test_cli_verify_session_returns_clear_dependency_error(capsys, monkeypatch):
+    monkeypatch.setenv("http_proxy", "http://proxy.example:8888")
+    monkeypatch.setenv("HTTPS_PROXY", "http://secure-proxy.example:8888")
+
     code = main(
         [
             "verify-session-tito-tokenizer",
@@ -41,6 +46,8 @@ def test_cli_verify_session_returns_clear_dependency_error(capsys):
 
     assert code == 2
     assert "requires the optional Miles/SGLang training stack" in capsys.readouterr().out
+    assert os.environ.get("http_proxy") == "http://proxy.example:8888"
+    assert os.environ.get("HTTPS_PROXY") == "http://secure-proxy.example:8888"
 
 
 def test_cli_verify_session_help(capsys):

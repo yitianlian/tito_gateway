@@ -6,6 +6,8 @@ import json
 from dataclasses import dataclass, field
 from typing import Any
 
+from tito_gateway.discovery import DEFAULT_BACKEND_PROBE_CANDIDATES
+
 
 _VALID_APPEND_ROLES = frozenset({"tool", "user", "system"})
 
@@ -23,6 +25,8 @@ class TITOGatewayConfig:
     session_server_ip: str = "127.0.0.1"
     session_server_port: int = 30000
     miles_router_timeout: float = 600.0
+    backend_probe_candidates: tuple[str, ...] = field(default_factory=lambda: DEFAULT_BACKEND_PROBE_CANDIDATES)
+    backend_probe_timeout: float = 0.25
 
     def __post_init__(self) -> None:
         if not self.hf_checkpoint:
@@ -47,6 +51,8 @@ class TITOGatewayConfig:
         session_server_ip: str,
         session_server_port: int,
         miles_router_timeout: float,
+        backend_probe_candidates: list[str] | None = None,
+        backend_probe_timeout: float = 0.25,
     ) -> "TITOGatewayConfig":
         kwargs: dict[str, Any] = {}
         if apply_chat_template_kwargs:
@@ -65,6 +71,8 @@ class TITOGatewayConfig:
             session_server_ip=session_server_ip,
             session_server_port=session_server_port,
             miles_router_timeout=miles_router_timeout,
+            backend_probe_candidates=tuple(backend_probe_candidates or DEFAULT_BACKEND_PROBE_CANDIDATES),
+            backend_probe_timeout=backend_probe_timeout,
         )
 
     def as_miles_namespace(self):

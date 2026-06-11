@@ -53,6 +53,8 @@ _PLACEHOLDER_PROMPT_RECORD = {
     ],
 }
 
+_PROXY_ENV_VARS = ("http_proxy", "https_proxy", "HTTP_PROXY", "HTTPS_PROXY")
+
 SESSION_VERIFY_INVARIANT_ARGS: dict[str, Any] = {
     "prompt_data": PROMPT_DATA_PATH,
     "input_key": "messages",
@@ -135,9 +137,19 @@ def _ensure_model_downloaded(hf_checkpoint: str) -> str:
     return local_dir
 
 
-def _clear_proxy_env() -> None:
-    for proxy_var in ("http_proxy", "https_proxy", "HTTP_PROXY", "HTTPS_PROXY"):
+def _clear_proxy_env() -> dict[str, str | None]:
+    previous = {proxy_var: os.environ.get(proxy_var) for proxy_var in _PROXY_ENV_VARS}
+    for proxy_var in _PROXY_ENV_VARS:
         os.environ.pop(proxy_var, None)
+    return previous
+
+
+def _restore_proxy_env(previous: dict[str, str | None]) -> None:
+    for proxy_var, value in previous.items():
+        if value is None:
+            os.environ.pop(proxy_var, None)
+        else:
+            os.environ[proxy_var] = value
 
 
 def namespace_to_train_args(ns: argparse.Namespace) -> str:
@@ -223,41 +235,44 @@ def run_session_verify(args: argparse.Namespace) -> None:
     args.tito_allowed_append_roles = sorted(set(r.lower() for r in args.tito_allowed_append_roles) | {"tool"})
 
     _ensure_prompt_data()
-    _clear_proxy_env()
-    args.hf_checkpoint = _ensure_model_downloaded(args.hf_checkpoint)
-
-    train_args = namespace_to_train_args(args)
-
-    # Per-sample token-seq metrics file: rollout workers append one JSONL line
-    # per sample inside session_verify_agent.generate; we aggregate after
-    # execute_train returns to apply the assistant_text soft threshold.
-    metrics_fd, metrics_path = tempfile.mkstemp(prefix="session_verify_metrics_", suffix=".jsonl")
-    os.close(metrics_fd)
-
-    preserved_metrics_path = None
+    proxy_env = _clear_proxy_env()
     try:
-        _command_utils().execute_train(
-            train_args=train_args,
-            num_gpus_per_node=args.actor_num_gpus_per_node,
-            megatron_model_type=None,
-            extra_env_vars={
-                "MILES_EXPERIMENTAL_ROLLOUT_REFACTOR": "1",
-                "MILES_TITO_MODEL": args.tito_model,
-                "MILES_SESSION_VERIFY_METRICS_PATH": metrics_path,
-            },
-        )
+        args.hf_checkpoint = _ensure_model_downloaded(args.hf_checkpoint)
+
+        train_args = namespace_to_train_args(args)
+
+        # Per-sample token-seq metrics file: rollout workers append one JSONL line
+        # per sample inside session_verify_agent.generate; we aggregate after
+        # execute_train returns to apply the assistant_text soft threshold.
+        metrics_fd, metrics_path = tempfile.mkstemp(prefix="session_verify_metrics_", suffix=".jsonl")
+        os.close(metrics_fd)
+
+        preserved_metrics_path = None
         try:
-            assert_session_verify_metrics(metrics_path, assistant_text_threshold=args.assistant_text_threshold)
-        except AssertionError:
-            preserved_metrics_path = metrics_path + ".failed"
-            shutil.copy(metrics_path, preserved_metrics_path)
-            logger.error("Preserved per-sample mismatch payloads at %s for post-mortem", preserved_metrics_path)
-            raise
+            _command_utils().execute_train(
+                train_args=train_args,
+                num_gpus_per_node=args.actor_num_gpus_per_node,
+                megatron_model_type=None,
+                extra_env_vars={
+                    "MILES_EXPERIMENTAL_ROLLOUT_REFACTOR": "1",
+                    "MILES_TITO_MODEL": args.tito_model,
+                    "MILES_SESSION_VERIFY_METRICS_PATH": metrics_path,
+                },
+            )
+            try:
+                assert_session_verify_metrics(metrics_path, assistant_text_threshold=args.assistant_text_threshold)
+            except AssertionError:
+                preserved_metrics_path = metrics_path + ".failed"
+                shutil.copy(metrics_path, preserved_metrics_path)
+                logger.error("Preserved per-sample mismatch payloads at %s for post-mortem", preserved_metrics_path)
+                raise
+        finally:
+            try:
+                os.unlink(metrics_path)
+            except OSError:
+                pass
     finally:
-        try:
-            os.unlink(metrics_path)
-        except OSError:
-            pass
+        _restore_proxy_env(proxy_env)
 
 
 def assert_session_verify_metrics(metrics_path: str, *, assistant_text_threshold: float) -> None:
