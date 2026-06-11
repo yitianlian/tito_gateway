@@ -95,13 +95,30 @@ def _add_verify_chat_template_parser(subparsers: argparse._SubParsersAction) -> 
 
 
 def _add_verify_session_parser(subparsers: argparse._SubParsersAction) -> None:
-    from miles.utils.test_utils.session_verify_runner import SESSION_VERIFY_INVARIANT_ARGS
+    from miles.utils.test_utils.session_verify_runner import (
+        ASSISTANT_TEXT_MISMATCH_RATIO_THRESHOLD,
+        SESSION_VERIFY_INVARIANT_ARGS,
+    )
 
     parser = subparsers.add_parser(
         "verify-session-tito-tokenizer",
         help="Run the optional Miles/SGLang session-server TITO verifier.",
     )
     parser.add_argument("--hf-checkpoint", required=True, help="HuggingFace model ID or local checkpoint path.")
+    parser.add_argument("--chat-template-path", default=None, help="Optional fixed chat template path.")
+    parser.add_argument(
+        "--apply-chat-template",
+        action="store_true",
+        default=False,
+        help="Miles-compatible flag for applying the chat template in data preprocessing.",
+    )
+    parser.add_argument(
+        "--apply-chat-template-kwargs",
+        type=json.loads,
+        default={},
+        metavar="JSON",
+        help="JSON object forwarded as Miles chat-template kwargs.",
+    )
     parser.add_argument(
         "--tito-model",
         choices=[item.value for item in TITOTokenizerType],
@@ -115,17 +132,61 @@ def _add_verify_session_parser(subparsers: argparse._SubParsersAction) -> None:
         choices=["tool", "user", "system"],
         metavar="ROLE",
     )
+    parser.add_argument("--prompt-data", default=SESSION_VERIFY_INVARIANT_ARGS["prompt_data"])
+    parser.add_argument("--input-key", default=SESSION_VERIFY_INVARIANT_ARGS["input_key"])
+    parser.add_argument(
+        "--custom-generate-function-path",
+        default=SESSION_VERIFY_INVARIANT_ARGS["custom_generate_function_path"],
+    )
+    parser.add_argument(
+        "--custom-agent-function-path",
+        default=SESSION_VERIFY_INVARIANT_ARGS["custom_agent_function_path"],
+    )
+    parser.add_argument("--backend-url", default=None, help="Optional OpenAI-compatible backend URL for session tests.")
+    parser.add_argument("--session-server-ip", default="127.0.0.1")
+    parser.add_argument("--session-server-port", type=int, default=30000)
+    parser.add_argument("--miles-router-timeout", type=float, default=600.0)
     parser.add_argument("--sglang-reasoning-parser", default=None)
     parser.add_argument("--sglang-tool-call-parser", default=None)
     parser.add_argument("--rollout-num-gpus-per-engine", type=int, default=1)
     parser.add_argument("--sglang-expert-parallel-size", type=int, default=1)
+    parser.add_argument("--num-rollout", type=int, default=SESSION_VERIFY_INVARIANT_ARGS["num_rollout"])
+    parser.add_argument("--rollout-batch-size", type=int, default=SESSION_VERIFY_INVARIANT_ARGS["rollout_batch_size"])
+    parser.add_argument(
+        "--rollout-max-response-len",
+        type=int,
+        default=SESSION_VERIFY_INVARIANT_ARGS["rollout_max_response_len"],
+    )
+    parser.add_argument(
+        "--rollout-temperature",
+        type=float,
+        default=SESSION_VERIFY_INVARIANT_ARGS["rollout_temperature"],
+    )
+    parser.add_argument("--global-batch-size", type=int, default=SESSION_VERIFY_INVARIANT_ARGS["global_batch_size"])
+    parser.add_argument("--rm-type", default=SESSION_VERIFY_INVARIANT_ARGS["rm_type"])
     parser.add_argument("--actor-num-nodes", type=int, default=1)
     parser.add_argument("--actor-num-gpus-per-node", type=int, default=1)
     parser.add_argument("--n-samples-per-prompt", type=int, default=4)
     parser.add_argument("--session-verify-cycles", type=int, default=3)
     parser.add_argument("--tool-call-failure-mode", default="rollback")
-    parser.add_argument("--assistant-text-threshold", type=float, default=0.1)
-    parser.add_argument("--rollout-max-response-len", type=int, default=8192)
+    parser.add_argument(
+        "--assistant-text-threshold",
+        type=float,
+        default=ASSISTANT_TEXT_MISMATCH_RATIO_THRESHOLD,
+        help=(
+            "Soft threshold for assistant_text mismatch ratio. "
+            f"Default {ASSISTANT_TEXT_MISMATCH_RATIO_THRESHOLD}."
+        ),
+    )
+    parser.add_argument(
+        "--train-backend",
+        choices=["megatron", "fsdp"],
+        default=SESSION_VERIFY_INVARIANT_ARGS["train_backend"],
+    )
+    parser.add_argument("--use-session-server", action=argparse.BooleanOptionalAction, default=None)
+    parser.add_argument("--debug-rollout-only", action=argparse.BooleanOptionalAction, default=None)
+    parser.add_argument("--ci-test", action=argparse.BooleanOptionalAction, default=None)
+    parser.add_argument("--colocate", action=argparse.BooleanOptionalAction, default=None)
     parser.set_defaults(**SESSION_VERIFY_INVARIANT_ARGS)
     parser.set_defaults(verify_command="session-tito-tokenizer")
 
