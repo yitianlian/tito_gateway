@@ -1,4 +1,4 @@
-"""Public tokenizer entrypoints reserved for Miles TITO vendoring."""
+"""Public tokenizer entrypoints for the vendored Miles TITO implementation."""
 
 from __future__ import annotations
 
@@ -22,12 +22,9 @@ class TITOTokenizerType(str, Enum):
 
 
 def get_tito_tokenizer(*args: Any, **kwargs: Any) -> Any:
-    """Return the vendored Miles TITO tokenizer.
-
-    The import surface is intentionally present in Round 0. The implementation
-    is completed when the Miles tokenizer code is vendored unchanged in the
-    AC-2/AC-3 round.
-    """
-    raise NotImplementedError(
-        "Miles TITO tokenizer vendoring is not installed yet; see plan.md AC-2/AC-3."
+    """Return a vendored Miles TITO tokenizer instance."""
+    from tito_gateway.vendor.miles_compat.utils.chat_template_utils import (
+        get_tito_tokenizer as _get_tito_tokenizer,
     )
+
+    return _get_tito_tokenizer(*args, **kwargs)

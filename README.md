@@ -16,9 +16,11 @@ can be vendored and tested with minimal edits.
 - `TITOGatewayConfig` and `TITOGateway` wrapper shell.
 - Deterministic backend URL discovery from explicit config and environment.
 - `tito-gateway` CLI with Miles-compatible serve flags.
+- Vendored Miles TITO/chat-template/session core under `tito_gateway.vendor.miles_compat`.
+- A `miles` compatibility namespace for upstream-style imports used by Miles tests.
 
-Full Miles TITO/session vendoring and unchanged upstream test migration are
-tracked in `plan.md` and subsequent RLCR rounds.
+Unchanged upstream test migration and full e2e verifier wiring are tracked in
+`plan.md` and subsequent RLCR rounds.
 
 ## Acknowledgement
 
