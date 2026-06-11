@@ -19,7 +19,7 @@ def test_cli_serve_help(capsys):
     assert "--hf-checkpoint" in capsys.readouterr().out
 
 
-def test_cli_verify_placeholder_returns_nonzero(capsys):
+def test_cli_verify_session_returns_clear_dependency_error(capsys):
     code = main(
         [
             "verify-session-tito-tokenizer",
@@ -40,7 +40,7 @@ def test_cli_verify_placeholder_returns_nonzero(capsys):
     )
 
     assert code == 2
-    assert "requires the optional Miles/SGLang session e2e runner" in capsys.readouterr().out
+    assert "requires the optional Miles/SGLang training stack" in capsys.readouterr().out
 
 
 def test_cli_verify_session_help(capsys):

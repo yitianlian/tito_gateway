@@ -82,6 +82,8 @@ def _add_verify_chat_template_parser(subparsers: argparse._SubParsersAction) -> 
 
 
 def _add_verify_session_parser(subparsers: argparse._SubParsersAction) -> None:
+    from miles.utils.test_utils.session_verify_runner import SESSION_VERIFY_INVARIANT_ARGS
+
     parser = subparsers.add_parser(
         "verify-session-tito-tokenizer",
         help="Run the optional Miles/SGLang session-server TITO verifier.",
@@ -111,6 +113,7 @@ def _add_verify_session_parser(subparsers: argparse._SubParsersAction) -> None:
     parser.add_argument("--tool-call-failure-mode", default="rollback")
     parser.add_argument("--assistant-text-threshold", type=float, default=0.1)
     parser.add_argument("--rollout-max-response-len", type=int, default=8192)
+    parser.set_defaults(**SESSION_VERIFY_INVARIANT_ARGS)
     parser.set_defaults(verify_command="session-tito-tokenizer")
 
 
