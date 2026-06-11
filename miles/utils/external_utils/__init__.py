@@ -1,4 +1,4 @@
-"""Compatibility namespace for vendored Miles rollout modules."""
+"""Compatibility namespace for optional Miles external utilities."""
 
 from pkgutil import extend_path
 
