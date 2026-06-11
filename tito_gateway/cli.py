@@ -18,14 +18,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     subparsers = parser.add_subparsers(dest="command")
 
-    _add_serve_parser(subparsers, name="serve")
+    _add_serve_parser(subparsers)
     _add_verify_chat_template_parser(subparsers)
     _add_verify_session_parser(subparsers)
     return parser
 
 
-def _add_serve_parser(subparsers: argparse._SubParsersAction, *, name: str) -> argparse.ArgumentParser:
-    serve = subparsers.add_parser(name, help="Start the TITO gateway server.")
+def _add_serve_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
+    serve = subparsers.add_parser("serve", help="Start the TITO gateway server.")
     _add_serve_arguments(serve)
     return serve
 

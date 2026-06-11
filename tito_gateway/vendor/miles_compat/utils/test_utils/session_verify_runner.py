@@ -247,7 +247,6 @@ def run_session_verify(args: argparse.Namespace) -> None:
         metrics_fd, metrics_path = tempfile.mkstemp(prefix="session_verify_metrics_", suffix=".jsonl")
         os.close(metrics_fd)
 
-        preserved_metrics_path = None
         try:
             _command_utils().execute_train(
                 train_args=train_args,
