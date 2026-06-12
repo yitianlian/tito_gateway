@@ -27,7 +27,7 @@
 Editable install 是给仓库开发用的：
 
 ```bash
-pip install -e '.[miles-core,test]'
+pip install -e '.[test]'
 pytest tests/package -q
 ```
 
@@ -35,7 +35,7 @@ pytest tests/package -q
 
 ```bash
 pip install tito-gateway
-pip install 'tito-gateway[miles-core]'
+pip install 'tito-gateway[verify]'
 ```
 
 ## 构建 Distribution

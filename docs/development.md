@@ -28,7 +28,7 @@ Public docs should make the relationship clear:
 Editable installs are for repository development:
 
 ```bash
-pip install -e '.[miles-core,test]'
+pip install -e '.[test]'
 pytest tests/package -q
 ```
 
@@ -36,7 +36,7 @@ Public users should install the package distribution instead:
 
 ```bash
 pip install tito-gateway
-pip install 'tito-gateway[miles-core]'
+pip install 'tito-gateway[verify]'
 ```
 
 ## Build A Distribution

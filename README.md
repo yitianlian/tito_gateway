@@ -30,11 +30,11 @@ Install from PyPI:
 pip install tito-gateway
 ```
 
-Install optional Miles/runtime dependencies when you want to run the verifier
-path locally:
+The copied Miles TITO logic is bundled in this package. Install optional
+verifier dependencies only when you want to run the heavy verifier path locally:
 
 ```bash
-pip install 'tito-gateway[miles-core]'
+pip install 'tito-gateway[verify]'
 ```
 
 Start the gateway beside an OpenAI-compatible backend:
@@ -67,7 +67,7 @@ app = gateway.app
 Run the CPU-fast test suite:
 
 ```bash
-pip install -e '.[miles-core,test]'
+pip install -e '.[test]'
 pytest tests/upstream tests/package -q
 ```
 
