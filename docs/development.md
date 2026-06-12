@@ -23,6 +23,35 @@ Public docs should make the relationship clear:
 - This package makes that work importable and runnable as a standalone gateway.
 - Optional heavy verification depends on the Miles/SGLang training stack.
 
+## Local Setup
+
+Editable installs are for repository development:
+
+```bash
+pip install -e '.[miles-core,test]'
+pytest tests/package -q
+```
+
+Public users should install the package distribution instead:
+
+```bash
+pip install tito-gateway
+pip install 'tito-gateway[miles-core]'
+```
+
+## Build A Distribution
+
+```bash
+python -m pip install build
+python -m build
+python -m pip install dist/tito_gateway-0.1.0-py3-none-any.whl
+tito-gateway --help
+```
+
+Releases should be tagged as `vX.Y.Z`. The GitHub Actions workflow builds on
+every push and publishes to PyPI only from version tags, using PyPI trusted
+publishing for the `pypi` environment.
+
 ## Pre-Push Checklist
 
 1. Run CPU-fast tests.

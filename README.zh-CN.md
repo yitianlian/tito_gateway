@@ -23,10 +23,16 @@ TITO tokenizer、fixed chat-template 方案、session trajectory 模型、proxy 
 
 ## 快速开始
 
-在 checkout 中安装：
+从 PyPI 安装：
 
 ```bash
-pip install -e '.[miles-core,test]'
+pip install tito-gateway
+```
+
+如果要在本地运行 verifier 相关路径，再安装 Miles/runtime 可选依赖：
+
+```bash
+pip install 'tito-gateway[miles-core]'
 ```
 
 在 OpenAI-compatible backend 旁边启动 gateway：
@@ -59,6 +65,7 @@ app = gateway.app
 运行 CPU-fast 测试：
 
 ```bash
+pip install -e '.[miles-core,test]'
 pytest tests/upstream tests/package -q
 ```
 

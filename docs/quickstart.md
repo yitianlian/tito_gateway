@@ -5,7 +5,14 @@
 ## Install
 
 ```bash
-pip install -e '.[miles-core,test]'
+pip install tito-gateway
+```
+
+Install optional Miles/runtime dependencies when you want to run the verifier
+path locally:
+
+```bash
+pip install 'tito-gateway[miles-core]'
 ```
 
 If the console script is not on `PATH`, use:
@@ -57,6 +64,7 @@ app = gateway.app
 ## Run CPU-Fast Tests
 
 ```bash
+pip install -e '.[miles-core,test]'
 python scripts/prepare_test_tokenizer_cache.py --endpoint https://huggingface.co
 pytest tests/upstream tests/package -q
 ```

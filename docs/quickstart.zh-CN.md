@@ -5,7 +5,13 @@
 ## 安装
 
 ```bash
-pip install -e '.[miles-core,test]'
+pip install tito-gateway
+```
+
+如果要在本地运行 verifier 相关路径，再安装 Miles/runtime 可选依赖：
+
+```bash
+pip install 'tito-gateway[miles-core]'
 ```
 
 如果 console script 不在 `PATH` 中，可以用：
@@ -57,6 +63,7 @@ app = gateway.app
 ## 运行 CPU-fast 测试
 
 ```bash
+pip install -e '.[miles-core,test]'
 python scripts/prepare_test_tokenizer_cache.py --endpoint https://huggingface.co
 pytest tests/upstream tests/package -q
 ```

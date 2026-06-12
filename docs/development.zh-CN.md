@@ -22,6 +22,34 @@
 - 这个 package 让这套工作可以作为 standalone gateway 被 import 和运行。
 - optional heavy verification 依赖 Miles/SGLang training stack。
 
+## 本地设置
+
+Editable install 是给仓库开发用的：
+
+```bash
+pip install -e '.[miles-core,test]'
+pytest tests/package -q
+```
+
+公开用户应该安装 package distribution：
+
+```bash
+pip install tito-gateway
+pip install 'tito-gateway[miles-core]'
+```
+
+## 构建 Distribution
+
+```bash
+python -m pip install build
+python -m build
+python -m pip install dist/tito_gateway-0.1.0-py3-none-any.whl
+tito-gateway --help
+```
+
+Release tag 使用 `vX.Y.Z`。GitHub Actions workflow 会在每次 push 时构建，在 version
+tag 上通过 PyPI trusted publishing 发布到 `pypi` environment。
+
 ## Push 前检查
 
 1. 跑 CPU-fast tests。

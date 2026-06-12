@@ -24,10 +24,17 @@ Vendored source is tracked in `tito_gateway/VENDORED_MILES_AUDIT.md`.
 
 ## Quickstart
 
-Install from a checkout:
+Install from PyPI:
 
 ```bash
-pip install -e '.[miles-core,test]'
+pip install tito-gateway
+```
+
+Install optional Miles/runtime dependencies when you want to run the verifier
+path locally:
+
+```bash
+pip install 'tito-gateway[miles-core]'
 ```
 
 Start the gateway beside an OpenAI-compatible backend:
@@ -60,6 +67,7 @@ app = gateway.app
 Run the CPU-fast test suite:
 
 ```bash
+pip install -e '.[miles-core,test]'
 pytest tests/upstream tests/package -q
 ```
 
